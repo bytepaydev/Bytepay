@@ -47,9 +47,11 @@ bool GetBlockHash(uint256& hash, int nBlockHeight);
 typedef std::map<int, int> intMap;
 // Masternode tiers
 static std::map<int, int> masternodeTiers = map_list_of (1, 5000) (2, 10000) (3, 20000) (4, 40000); // 2500 - 5000 - 10000 - 20000
+static std::map<int, int> masternodeTiersNew = map_list_of (1, 20000) (2, 50000) (3, 75000) (4, 100000); // 2500 - 5000 - 10000 - 20000
 
 // Masternode tier rewards
 static std::map<int, int> masternodeTierRewards = map_list_of (1, 50) (2, 130) (3, 300) (4, 620); // 25 - 60 - 140 - 300
+static std::map<int, int> masternodeTierRewardsNew = map_list_of (1, 100) (2, 270) (3, 420) (4, 620); // 25 - 60 - 140 - 300
 
 //
 // The Masternode Class. For managing the darksend process. It contains the input of the 1000 BEPAY, signature to prove

@@ -112,18 +112,33 @@ struct CMainSignals {
 
 bool IsMNCollateralValid(int64_t value, int nHeight) {
 
-    // Using BOOST_FOREACH for concistency with the rest of the code, everything should be using a plain for from c++ 11 or 17
-    BOOST_FOREACH(PAIRTYPE(const int, int)& mntier, masternodeTiers)
-        {
-            if (value == (mntier.second)*COIN)
-            return true;
-        }
-    return false;
+    if (pindexBest->nHeight < TIERS_SWITCH_BLOCK) {
+        // Using BOOST_FOREACH for concistency with the rest of the code, everything should be using a plain for from c++ 11 or 17
+        BOOST_FOREACH(PAIRTYPE(const int, int)& mntier, masternodeTiers)
+            {
+                if (value == (mntier.second)*COIN)
+                return true;
+            }
+        return false;
+    } else {
+        // Using BOOST_FOREACH for concistency with the rest of the code, everything should be using a plain for from c++ 11 or 17
+        BOOST_FOREACH(PAIRTYPE(const int, int)& mntier, masternodeTiersNew)
+            {
+                if (value == (mntier.second)*COIN)
+                return true;
+            }
+        return false;
+    }
 }
 
 int64_t GetMNCollateral(int nHeight, int tier) {
-    return masternodeTiers[tier];
+    if (pindexBest->nHeight < TIERS_SWITCH_BLOCK) {
+        return masternodeTiers[tier];
+    } else {
+        return masternodeTiersNew[tier];
+    }
 }
+    
 
 void RegisterWallet(CWalletInterface* pwalletIn) {
     g_signals.SyncTransaction.connect(boost::bind(&CWalletInterface::SyncTransaction, pwalletIn, _1, _2, _3));
@@ -1384,11 +1399,19 @@ int64_t GetProofOfWorkReward(int nHeight, int64_t nFees)
 // Checks if a given reward present in a block is valid
 bool IsPOSRewardValid(int64_t value, int64_t nFees) {
 
-    // Using BOOST_FOREACH for concistency with the rest of the code
-    BOOST_FOREACH(PAIRTYPE(const int, int)& tier, masternodeTierRewards)
-    {
-        if (value == (tier.second*COIN + POS_REWARD_TIERED_MN*COIN + nFees))
+// Using BOOST_FOREACH for concistency with the rest of the code
+    if (pindexBest->nHeight < TIERS_SWITCH_BLOCK) {
+        BOOST_FOREACH(PAIRTYPE(const int, int)& tier, masternodeTierRewards) 
+        {
+            if (value == (tier.second*COIN + POS_REWARD_TIERED_MN*COIN + nFees))
             return true;
+        }
+    } else {
+        BOOST_FOREACH(PAIRTYPE(const int, int)& tier, masternodeTierRewardsNew) 
+        {
+            if (value == (tier.second*COIN + POS_REWARD_TIERED_MN*COIN + nFees))
+            return true;
+        }
     }
     // The case of a wallet staking with no mns up
     if (value ==  POS_REWARD_TIERED_MN*COIN + nFees) {

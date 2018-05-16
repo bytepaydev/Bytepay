@@ -205,31 +205,56 @@ void CMasternode::Check()
         CTransaction tx = CTransaction();
         GetTransaction(vin.prevout.hash, tx, hashBlock);
         int64_t checkValue = tx.vout[vin.prevout.n].nValue;
-        if (tier >= 0) {
-            BOOST_FOREACH(PAIRTYPE(const int, int) & mntier, masternodeTiers)
-            {
-                if (!fAcceptable && (mntier.second*COIN) == checkValue) {
-                    CTransaction tx = CTransaction();
-                    CTxOut vout = CTxOut((GetMNCollateral(pindexBest->nHeight, mntier.first)) * COIN,
-                                         darkSendPool.collateralPubKey);
-                    tx.vin.push_back(vin);
-                    tx.vout.push_back(vout);
-                    {
-                        TRY_LOCK(cs_main, lockMain);
-                        if (!lockMain) return;
-                        fAcceptable = AcceptableInputs(mempool, tx, false, NULL);
-                        if (fAcceptable) { // Update mn tier on our records
-                            tier = (mntier.first);
+        if (pindexBest->nHeight < TIERS_SWITCH_BLOCK) {
+            if (tier >= 0) {
+                BOOST_FOREACH(PAIRTYPE(const int, int) & mntier, masternodeTiers)
+                {
+                    if (!fAcceptable && (mntier.second*COIN) == checkValue) {
+                        CTransaction tx = CTransaction();
+                        CTxOut vout = CTxOut((GetMNCollateral(pindexBest->nHeight, mntier.first)) * COIN,
+                                            darkSendPool.collateralPubKey);
+                        tx.vin.push_back(vin);
+                        tx.vout.push_back(vout);
+                        {
+                            TRY_LOCK(cs_main, lockMain);
+                            if (!lockMain) return;
+                            fAcceptable = AcceptableInputs(mempool, tx, false, NULL);
+                            if (fAcceptable) { // Update mn tier on our records
+                                tier = (mntier.first);
+                            } else {
+                                tx.vin.pop_back();
+                                tx.vout.pop_back();
+                            }
                         }
-                        else {
-                            tx.vin.pop_back();
-                            tx.vout.pop_back();
+                    }
+                }
+            }
+        } else {
+            if (tier >= 0) {
+                BOOST_FOREACH(PAIRTYPE(const int, int) & mntier, masternodeTiers)
+                {
+                    if (!fAcceptable && (mntier.second*COIN) == checkValue) {
+                        CTransaction tx = CTransaction();
+                        CTxOut vout = CTxOut((GetMNCollateral(pindexBest->nHeight, mntier.first)) * COIN,
+                                            darkSendPool.collateralPubKey);
+                        tx.vin.push_back(vin);
+                        tx.vout.push_back(vout);
+                        {
+                            TRY_LOCK(cs_main, lockMain);
+                            if (!lockMain) return;
+                            fAcceptable = AcceptableInputs(mempool, tx, false, NULL);
+                            if (fAcceptable) { // Update mn tier on our records
+                                tier = (mntier.first);
+                            } else {
+                                tx.vin.pop_back();
+                                tx.vout.pop_back();
+                            }
                         }
                     }
                 }
             }
         }
-
+            
         if (!fAcceptable) {
             activeState = MASTERNODE_VIN_SPENT;
             return;
