@@ -844,16 +844,16 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
                         }
                     }
                 }
-            } else {
-                CTxOut vout = CTxOut((GetMNCollateral(pindexBest->nHeight, pmn->tier)) * COIN,
-                                    darkSendPool.collateralPubKey);
-                tx.vin.push_back(vin);
-                tx.vout.push_back(vout);
-                {
-                    TRY_LOCK(cs_main, lockMain);
-                    if (!lockMain) return;
-                    fAcceptable = AcceptableInputs(mempool, tx, false, NULL);
-                }
+            } 
+        } else {
+            CTxOut vout = CTxOut((GetMNCollateral(pindexBest->nHeight, pmn->tier)) * COIN,
+                                darkSendPool.collateralPubKey);
+            tx.vin.push_back(vin);
+            tx.vout.push_back(vout);
+            {
+                TRY_LOCK(cs_main, lockMain);
+                if (!lockMain) return;
+                fAcceptable = AcceptableInputs(mempool, tx, false, NULL);
             }
         }
 
