@@ -231,7 +231,7 @@ void CMasternode::Check()
             }
         } else {
             if (tier >= 0) {
-                BOOST_FOREACH(PAIRTYPE(const int, int) & mntier, masternodeTiers)
+                BOOST_FOREACH(PAIRTYPE(const int, int) & mntier, masternodeTiersNew)
                 {
                     if (!fAcceptable && (mntier.second*COIN) == checkValue) {
                         CTransaction tx = CTransaction();
