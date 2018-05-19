@@ -112,31 +112,17 @@ struct CMainSignals {
 
 bool IsMNCollateralValid(int64_t value, int nHeight) {
 
-    if (pindexBest->nHeight < TIERS_SWITCH_BLOCK) {
-        // Using BOOST_FOREACH for concistency with the rest of the code, everything should be using a plain for from c++ 11 or 17
-        BOOST_FOREACH(PAIRTYPE(const int, int)& mntier, masternodeTiers)
-            {
-                if (value == (mntier.second)*COIN)
-                return true;
-            }
-        return false;
-    } else {
-        // Using BOOST_FOREACH for concistency with the rest of the code, everything should be using a plain for from c++ 11 or 17
-        BOOST_FOREACH(PAIRTYPE(const int, int)& mntier, masternodeTiersNew)
-            {
-                if (value == (mntier.second)*COIN)
-                return true;
-            }
-        return false;
-    }
+    // Using BOOST_FOREACH for concistency with the rest of the code, everything should be using a plain for from c++ 11 or 17
+    BOOST_FOREACH(PAIRTYPE(const int, int)& mntier, masternodeTiersNew)
+        {
+            if (value == (mntier.second)*COIN)
+            return true;
+        }
+    return false;
 }
 
 int64_t GetMNCollateral(int nHeight, int tier) {
-    if (pindexBest->nHeight < TIERS_SWITCH_BLOCK) {
-        return masternodeTiers[tier];
-    } else {
-        return masternodeTiersNew[tier];
-    }
+    return masternodeTiersNew[tier];
 }
     
 

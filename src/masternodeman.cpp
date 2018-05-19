@@ -819,68 +819,28 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
         GetTransaction(vin.prevout.hash, tx, hashBlock);
         int64_t checkValue = tx.vout[vin.prevout.n].nValue;
         int newMNTier = 0;
-        if (pindexBest->nHeight < TIERS_SWITCH_BLOCK) {
-            if (pmn==NULL || pmn->tier >= 0) {
-                BOOST_FOREACH(PAIRTYPE(const int, int) & mntier, masternodeTiers)
-                {
-                    if (!fAcceptable && (mntier.second*COIN) == checkValue) {
-                        CTransaction tx = CTransaction();
-                        CTxOut vout = CTxOut((GetMNCollateral(pindexBest->nHeight, mntier.first)) * COIN,
-                                            darkSendPool.collateralPubKey);
-                        tx.vin.push_back(vin);
-                        tx.vout.push_back(vout);
-                        {
-                            TRY_LOCK(cs_main, lockMain);
-                            if (!lockMain) return;
-                            fAcceptable = AcceptableInputs(mempool, tx, false, NULL);
-                            if (fAcceptable) { // Update mn tier on our records
-                                if (pmn != NULL) {
-                                    pmn->UpdateTier(mntier.first);
-                                } else {
-                                    newMNTier = mntier.first;
-                                }
+        if (pmn==NULL || pmn->tier >= 0) {
+            BOOST_FOREACH(PAIRTYPE(const int, int) & mntier, masternodeTiersNew)
+            {
+                if (!fAcceptable && (mntier.second*COIN) == checkValue) {
+                    CTransaction tx = CTransaction();
+                    CTxOut vout = CTxOut((GetMNCollateral(pindexBest->nHeight, mntier.first)) * COIN,
+                                        darkSendPool.collateralPubKey);
+                    tx.vin.push_back(vin);
+                    tx.vout.push_back(vout);
+                    {
+                        TRY_LOCK(cs_main, lockMain);
+                        if (!lockMain) return;
+                        fAcceptable = AcceptableInputs(mempool, tx, false, NULL);
+                        if (fAcceptable) { // Update mn tier on our records
+                            if (pmn != NULL) {
+                                pmn->UpdateTier(mntier.first);
                             } else {
-                                tx.vin.pop_back();
-                                tx.vout.pop_back();
+                                newMNTier = mntier.first;
                             }
-                        }
-                    }
-                }
-            } else {
-                CTxOut vout = CTxOut((GetMNCollateral(pindexBest->nHeight, pmn->tier)) * COIN,
-                                    darkSendPool.collateralPubKey);
-                tx.vin.push_back(vin);
-                tx.vout.push_back(vout);
-                {
-                    TRY_LOCK(cs_main, lockMain);
-                    if (!lockMain) return;
-                    fAcceptable = AcceptableInputs(mempool, tx, false, NULL);
-                }
-            }
-        } else {
-            if (pmn==NULL || pmn->tier >= 0) {
-                BOOST_FOREACH(PAIRTYPE(const int, int) & mntier, masternodeTiersNew)
-                {
-                    if (!fAcceptable && (mntier.second*COIN) == checkValue) {
-                        CTransaction tx = CTransaction();
-                        CTxOut vout = CTxOut((GetMNCollateral(pindexBest->nHeight, mntier.first)) * COIN,
-                                            darkSendPool.collateralPubKey);
-                        tx.vin.push_back(vin);
-                        tx.vout.push_back(vout);
-                        {
-                            TRY_LOCK(cs_main, lockMain);
-                            if (!lockMain) return;
-                            fAcceptable = AcceptableInputs(mempool, tx, false, NULL);
-                            if (fAcceptable) { // Update mn tier on our records
-                                if (pmn != NULL) {
-                                    pmn->UpdateTier(mntier.first);
-                                } else {
-                                    newMNTier = mntier.first;
-                                }
-                            } else {
-                                tx.vin.pop_back();
-                                tx.vout.pop_back();
-                            }
+                        } else {
+                            tx.vin.pop_back();
+                            tx.vout.pop_back();
                         }
                     }
                 }
